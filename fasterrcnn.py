@@ -127,7 +127,7 @@ def main():
     # TRAINING LOOP
     for epoch in range(epochs):
         model.train()
-        for i, data in train_loader:
+        for i, data in enumerate(prog_bar):
             images, targets = data
             images = list(image.to(device) for image in images)
             targets = [{k: v.to(device) for k, v in t.items()} for t in targets]
