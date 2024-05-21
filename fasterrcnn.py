@@ -15,9 +15,14 @@ from torch.utils.data import DataLoader
 
 from utils import *
 
+def get_train_transform():
+    return T.Compose([
+        T.PILToTensor(),
+        T.ConvertImageDtype(torch.float)
+    ])
 
 class CustomDataset(torch.utils.data.Dataset):
-    def __init__(self, images_df, classes, height, width):
+    def __init__(self, images_df, classes, height, width, transform):
         self.images = images_df
         self.images_paths = images_df["path"].to_list()
         self.annotations = images_df["annotation"]
@@ -59,6 +64,9 @@ class CustomDataset(torch.utils.data.Dataset):
         target["boxes"] = boxes
         target["labels"] = labels
         target["image_id"] = torch.tensor([idx])
+
+        image_resized, target = self.transforms(image_resized, target)
+
         return image_resized, target
 
     def __len__(self):
@@ -79,8 +87,8 @@ def main():
     df_train = pd.DataFrame(train_images, columns=["path", "annotation"])
     df_val = pd.DataFrame(val_images, columns=["path", "annotation"])
 
-    train_dataset = CustomDataset(df_train, CLASSES, 512, 512)
-    val_dataset = CustomDataset(df_val, CLASSES, 512, 512)
+    train_dataset = CustomDataset(df_train, CLASSES, 512, 512, get_train_transform())
+    val_dataset = CustomDataset(df_val, CLASSES, 512, 512, get_train_transform())
 
     print(f"Number of training images: {len(train_dataset)}")
     print(f"Number of validation images: {len(val_dataset)}")
