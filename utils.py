@@ -18,10 +18,10 @@ def compute_mean_std(image_paths):
     std = np.zeros(3)
 
     for path in image_paths:
-    image = Image.open(path).convert("RGB")
-    image = np.array(image) / 255.0  # Convert to float and scale to [0, 1]
-    mean += np.mean(image, axis=(0, 1))
-    std += np.std(image, axis=(0, 1))
+        image = Image.open(path).convert("RGB")
+        image = np.array(image) / 255.0  # Convert to float and scale to [0, 1]
+        mean += np.mean(image, axis=(0, 1))
+        std += np.std(image, axis=(0, 1))
 
     mean /= n_images
     std /= n_images
