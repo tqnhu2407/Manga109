@@ -88,7 +88,12 @@ def main():
     df_train = pd.DataFrame(train_images, columns=["path", "annotation"])
     df_val = pd.DataFrame(val_images, columns=["path", "annotation"])
 
-    transform = transforms.Compose([transforms.PILToTensor()])
+    image_paths = df_train["path"].to_list() #+ df_val["path"].to_list()
+    mean, std = compute_mean_std(image_paths)
+    transform = transforms.Compose([
+        transforms.PILToTensor(),
+        transforms.Normalize(mean=mean, std=std)
+        ])
 
     train_dataset = CustomDataset(df_train, CLASSES, 512, 512, transform)
     val_dataset = CustomDataset(df_val, CLASSES, 512, 512, transform)
