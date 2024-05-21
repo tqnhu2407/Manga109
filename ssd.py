@@ -1,3 +1,4 @@
+
 import os
 from tqdm.auto import tqdm
 
@@ -8,8 +9,7 @@ from sklearn.model_selection import train_test_split
 
 import torch
 import torchvision
-from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
-from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights
+from torchvision.models.detection.ssd import SSDClassificationHead
 from torch.utils.data import DataLoader
 import torchvision.transforms as transforms 
 
@@ -68,13 +68,21 @@ def main():
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    # load Faster RCNN pre-trained model
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
-    # get the number of input features 
-    in_features = model.roi_heads.box_predictor.cls_score.in_features
-    # define a new head for the detector with required number of classes
-    model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
+
+    """
+    Create SSD300 for custom classes.
+    The following model builder can be used to istantiate a SSD300 model with or without pretrained weights.
+    All the supported models internally rely on torchvision.models.detection.ssd300.SSD base class.
+    """
+    model = torchvision.models.detection.ssd300_vgg16(weights='DEFAULT')
+    num_anchors = model.anchor_generator.num_anchors_per_location() # get num anchor
+    in_channels=[]
+    for layer in model.head.classification_head.module_list:
+        in_channels.append(layer.in_channels)
+    # add new classification head with custom number of classes
+    model.head.classification_head = SSDClassificationHead(in_channels, num_anchors, n_classes)
     model = model.to(device)
+    
     params = [p for p in model.parameters() if p.requires_grad]
     names = [n for n,p in model.named_parameters() if p.requires_grad]
 
@@ -105,7 +113,7 @@ def main():
             print(f"Epoch: {epoch}, Loss: {losses}")
 
     # Save the model
-    torch.save(model.state_dict(), "fasterrcnn_1epoch.pth")
+    torch.save(model.state_dict(), "model.pth")
 
 if __name__ == "__main__":
     main()
