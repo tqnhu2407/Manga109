@@ -1,4 +1,6 @@
 import manga109api
+import numpy as np
+from PIL import Image
 
 def load_all_images(parser, CLASSES):
     images = []
