@@ -11,8 +11,7 @@ import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights
 from torch.utils.data import DataLoader
-import res.transforms as T
-
+import torchvision.transforms as transforms 
 
 from utils import *
 
@@ -30,6 +29,7 @@ class CustomDataset(torch.utils.data.Dataset):
         self.classes = classes
         self.height = height
         self.width = width
+        self.transform = transform
 
     def __getitem__(self, idx):
         image_path = self.images_paths[idx]
@@ -66,7 +66,7 @@ class CustomDataset(torch.utils.data.Dataset):
         target["labels"] = labels
         target["image_id"] = torch.tensor([idx])
 
-        image_resized, target = self.transforms(image_resized, target)
+        image_resized = self.transform(image_resized)
 
         return image_resized, target
 
@@ -88,8 +88,10 @@ def main():
     df_train = pd.DataFrame(train_images, columns=["path", "annotation"])
     df_val = pd.DataFrame(val_images, columns=["path", "annotation"])
 
-    train_dataset = CustomDataset(df_train, CLASSES, 512, 512, get_train_transform())
-    val_dataset = CustomDataset(df_val, CLASSES, 512, 512, get_train_transform())
+    transform = transforms.Compose([transforms.PILToTensor()])
+
+    train_dataset = CustomDataset(df_train, CLASSES, 512, 512, transform)
+    val_dataset = CustomDataset(df_val, CLASSES, 512, 512, transform)
 
     print(f"Number of training images: {len(train_dataset)}")
     print(f"Number of validation images: {len(val_dataset)}")
