@@ -11,7 +11,7 @@ import torchvision
 from torchvision.models.detection.faster_rcnn import FastRCNNPredictor
 from torchvision.models.detection import FasterRCNN_ResNet50_FPN_Weights
 from torch.utils.data import DataLoader
-import torchvision.transforms as transforms 
+from torchvision.transforms import v2
 
 from dataset import CustomDataset
 from utils import *
@@ -33,9 +33,10 @@ def main():
 
     image_paths = df_train["path"].to_list() #+ df_val["path"].to_list()
     mean, std = compute_mean_std(image_paths)
-    transform = transforms.Compose([
-        transforms.PILToTensor(),
-        transforms.Normalize(mean=mean, std=std)
+    transform = v2.Compose([
+        v2.PILToTensor(),
+        v2.ToDtype(torch.float32, scale=True),
+        v2.Normalize(mean=mean, std=std)
         ])
 
     train_dataset = CustomDataset(df_train, CLASSES, 512, 512, transform)
@@ -69,7 +70,7 @@ def main():
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     # load Faster RCNN pre-trained model
-    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(pretrained=True)
+    model = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT)
     # get the number of input features 
     in_features = model.roi_heads.box_predictor.cls_score.in_features
     # define a new head for the detector with required number of classes
@@ -83,6 +84,7 @@ def main():
 
     train_loss_list = []
     prog_bar = tqdm(train_loader, total=len(train_loader))
+    print("BEGIN TRAINING\n")
     # TRAINING LOOP
     for epoch in range(epochs):
         model.train()
@@ -104,6 +106,7 @@ def main():
             prog_bar.set_description(desc=f"Loss: {loss_value:.4f}")
             print(f"Epoch: {epoch}, Loss: {losses}")
 
+    print("FINISH TRAINING")
     # Save the model
     torch.save(model.state_dict(), "fasterrcnn_1epoch.pth")
 
