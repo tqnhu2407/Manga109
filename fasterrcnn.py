@@ -1,5 +1,6 @@
 import os
 from tqdm.auto import tqdm
+import time
 
 import numpy as np
 import pandas as pd
@@ -69,6 +70,8 @@ def main():
     )
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print("\n\nSTART LOADING MODEL\n")
+    start_time = time.time()
     # load Faster RCNN pre-trained model
     model = torchvision.models.detection.fasterrcnn_resnet50_fpn(weights=FasterRCNN_ResNet50_FPN_Weights.DEFAULT)
     # get the number of input features 
@@ -76,6 +79,9 @@ def main():
     # define a new head for the detector with required number of classes
     model.roi_heads.box_predictor = FastRCNNPredictor(in_features, num_classes)
     model = model.to(device)
+    end_time = time.time()
+    print("\n\nFINISH LOADING MODEL\n")
+    print(f"MODEL LOADING TIME = {end_time - start_time} seconds\n")
     params = [p for p in model.parameters() if p.requires_grad]
     names = [n for n,p in model.named_parameters() if p.requires_grad]
 
@@ -84,7 +90,7 @@ def main():
 
     train_loss_list = []
     prog_bar = tqdm(train_loader, total=len(train_loader))
-    print("BEGIN TRAINING\n")
+    print("\n\nBEGIN TRAINING\n")
     # TRAINING LOOP
     for epoch in range(epochs):
         model.train()

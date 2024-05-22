@@ -48,7 +48,7 @@ class CustomDataset(torch.utils.data.Dataset):
         target["labels"] = labels
         target["image_id"] = torch.tensor([idx])
 
-        image_resized = self.transform(image_resized)
+        image_resized = self.transform(image_resized, target)
 
         return image_resized, target
 
