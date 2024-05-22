@@ -37,7 +37,7 @@ def main():
     transform = v2.Compose([
         v2.PILToTensor(),
         v2.ToDtype(torch.float32, scale=True),
-        v2.Normalize(mean=mean, std=std)
+        v2.Normalize(mean=(0.485, 0.456, 0.406), std=(0.229, 0.224, 0.225))
         ])
 
     train_dataset = CustomDataset(df_train, CLASSES, 512, 512, transform)
