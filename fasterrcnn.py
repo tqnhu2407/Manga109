@@ -32,8 +32,6 @@ def main():
     df_train = pd.DataFrame(train_images, columns=["path", "annotation"])
     df_val = pd.DataFrame(val_images, columns=["path", "annotation"])
 
-    image_paths = df_train["path"].to_list() #+ df_val["path"].to_list()
-    mean, std = compute_mean_std(image_paths)
     transform = v2.Compose([
         v2.PILToTensor(),
         v2.ToDtype(torch.float32, scale=True),
